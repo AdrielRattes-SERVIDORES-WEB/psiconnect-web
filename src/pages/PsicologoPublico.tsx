@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import BrutalistCard from '../components/BrutalistCard'
 import BrutalistButton from '../components/BrutalistButton'
@@ -27,6 +27,10 @@ function diasDoMes(ano: number, mes: number) {
   return dias
 }
 
+function scrollSuave(ref: React.RefObject<HTMLElement | null>) {
+  setTimeout(() => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+}
+
 export default function PsicologoPublico() {
   const { slug } = useParams()
   const navigate = useNavigate()
@@ -34,24 +38,23 @@ export default function PsicologoPublico() {
   const [psi, setPsi] = useState<Psicologo | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Calendário
+  const refHorarios = useRef<HTMLDivElement>(null)
+  const refDados = useRef<HTMLDivElement>(null)
+
   const hoje = new Date(); hoje.setHours(0,0,0,0)
   const [mesAtual, setMesAtual] = useState(new Date(hoje.getFullYear(), hoje.getMonth(), 1))
   const [dia, setDia] = useState<Date | null>(null)
-
-  // Horários
   const [horario, setHorario] = useState('')
   const [horariosOcupados, setHorariosOcupados] = useState<string[]>([])
   const [modalidade, setModalidade] = useState<'online'|'presencial'>('online')
 
-  // Formulário
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
+  const [telefone, setTelefone] = useState('')
   const [obs, setObs] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
 
-  // Pós-agendamento — criar senha
   const [etapa, setEtapa] = useState<'form'|'senha'|'ok'>('form')
   const [senha, setSenha] = useState('')
   const [senha2, setSenha2] = useState('')
@@ -71,7 +74,13 @@ export default function PsicologoPublico() {
     api.get(`/api/agendamentos/horarios-ocupados?psicologoSlug=${slug}&data=${fmtDataISO(dia)}`)
       .then(r => setHorariosOcupados(r.data))
       .catch(() => setHorariosOcupados([]))
+    scrollSuave(refHorarios)
   }, [dia, slug])
+
+  const selecionarHorario = (h: string) => {
+    setHorario(h)
+    scrollSuave(refDados)
+  }
 
   const scrollToForm = () => document.getElementById('agendamento')?.scrollIntoView({ behavior: 'smooth' })
 
@@ -85,7 +94,8 @@ export default function PsicologoPublico() {
       dataHora.setHours(Number(h), Number(m), 0, 0)
       await api.post('/api/agendamentos/publico', {
         psicologoId: psi!.id, pacienteNome: nome, pacienteEmail: email,
-        dataHora: dataHora.toISOString(), modalidade, observacoes: obs
+        pacienteTelefone: telefone, dataHora: dataHora.toISOString(),
+        modalidade, observacoes: obs
       })
       setEtapa('senha')
     } catch { setErro('Erro ao agendar. Tente novamente.') }
@@ -100,7 +110,7 @@ export default function PsicologoPublico() {
     try {
       const { data } = await api.post('/api/auth/criar-senha-paciente', { email, senha, nome })
       login(data)
-      setEtapa('ok')
+      navigate(`/p/${slug}/pacientes`)
     } catch { setErroSenha('Erro ao criar conta. Tente novamente.') }
     finally { setCriandoSenha(false) }
   }
@@ -114,14 +124,13 @@ export default function PsicologoPublico() {
     </div>
   )
 
-  // ETAPA: Criar senha
   if (etapa === 'senha') return (
     <div className="min-h-screen bg-brand-gray flex items-center justify-center p-6">
       <BrutalistCard className="w-full max-w-md flex flex-col gap-6">
         <div className="text-center">
           <div className="w-16 h-16 bg-green-400 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">✓</div>
           <h1 className="text-3xl font-black font-heading uppercase text-black">Agendamento enviado!</h1>
-          <p className="text-black font-medium mt-2 opacity-70">
+          <p className="text-black font-medium mt-2">
             Crie sua senha para acompanhar seus agendamentos com {psi?.nome}.
           </p>
         </div>
@@ -150,25 +159,10 @@ export default function PsicologoPublico() {
             {criandoSenha ? 'Criando...' : 'Criar conta e ver agendamentos'}
           </BrutalistButton>
         </form>
-        <button onClick={() => setEtapa('ok')} className="text-xs font-bold uppercase underline opacity-40 hover:opacity-100 text-center text-black">
+        <button onClick={() => navigate(`/p/${slug}/pacientes`)}
+          className="text-xs font-bold uppercase underline opacity-40 hover:opacity-100 text-center text-black">
           Pular por agora
         </button>
-      </BrutalistCard>
-    </div>
-  )
-
-  // ETAPA: Sucesso final
-  if (etapa === 'ok') return (
-    <div className="min-h-screen bg-brand-gray flex items-center justify-center p-6">
-      <BrutalistCard className="w-full max-w-md flex flex-col gap-6 text-center items-center">
-        <div className="w-20 h-20 bg-green-400 rounded-full flex items-center justify-center text-5xl">✓</div>
-        <h1 className="text-4xl font-black font-heading uppercase text-black">Tudo certo!</h1>
-        <p className="text-black font-medium leading-relaxed">
-          Seu agendamento foi enviado para <strong>{psi?.nome}</strong>.
-        </p>
-        <Link to={`/p/${slug}/pacientes`}>
-          <BrutalistButton className="w-full">Ver meus agendamentos</BrutalistButton>
-        </Link>
       </BrutalistCard>
     </div>
   )
@@ -189,7 +183,6 @@ export default function PsicologoPublico() {
       <section className="bg-white border-b-2 border-black">
         <div className="max-w-2xl mx-auto px-6 py-14 flex flex-col items-center text-center gap-5">
 
-          {/* Foto maior */}
           <div className="w-48 h-48 rounded-full border-4 border-black overflow-hidden bg-black flex items-center justify-center text-white text-7xl font-black font-heading shadow-[8px_8px_0px_rgba(0,0,0,1)]">
             {psi?.fotoPerfil
               ? <img src={psi.fotoPerfil} className="w-full h-full object-cover" alt={psi?.nome}/>
@@ -198,37 +191,26 @@ export default function PsicologoPublico() {
 
           <h1 className="text-4xl md:text-5xl font-black font-heading uppercase tracking-tighter text-black">{psi?.nome}</h1>
 
-          {psi?.crp && (
-            <p className="text-sm font-bold uppercase tracking-widest text-black">CRP {psi.crp}</p>
-          )}
+          {psi?.crp && <p className="text-sm font-bold uppercase tracking-widest text-black">CRP {psi.crp}</p>}
 
-          {/* Tratamento de */}
           {psi?.especialidades && psi.especialidades.length > 0 && (
             <div className="flex flex-col gap-2 items-center">
-              <span className="text-xs font-black font-heading uppercase tracking-widest text-black opacity-60">
-                Tratamento de
-              </span>
+              <span className="text-xs font-black font-heading uppercase tracking-widest text-black opacity-60">Tratamento de</span>
               <div className="flex flex-wrap gap-2 justify-center">
                 {psi.especialidades.map(e => (
-                  <span key={e} className="bg-black text-white text-xs font-bold font-heading uppercase px-4 py-1.5 rounded-full">
-                    {e}
-                  </span>
+                  <span key={e} className="bg-black text-white text-xs font-bold font-heading uppercase px-4 py-1.5 rounded-full">{e}</span>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Abordagem */}
           {psi?.abordagem && (
             <div className="flex flex-col gap-1 items-center">
-              <span className="text-xs font-black font-heading uppercase tracking-widest text-black opacity-60">
-                Linha de trabalho
-              </span>
+              <span className="text-xs font-black font-heading uppercase tracking-widest text-black opacity-60">Linha de trabalho</span>
               <p className="text-sm font-bold text-black">{psi.abordagem}</p>
             </div>
           )}
 
-          {/* Quem sou eu */}
           {psi?.bio && (
             <div className="w-full border-t-2 border-black pt-6 flex flex-col gap-3">
               <h2 className="text-2xl font-black font-heading uppercase tracking-tighter text-black">Quem sou eu</h2>
@@ -236,17 +218,12 @@ export default function PsicologoPublico() {
             </div>
           )}
 
-          <BrutalistButton onClick={scrollToForm} className="text-lg px-10">
-            Agendar Consulta
-          </BrutalistButton>
+          <BrutalistButton onClick={scrollToForm} className="text-lg px-10">Agendar Consulta</BrutalistButton>
 
           <div className="flex flex-col items-center gap-1">
-            <div className="text-4xl font-black font-heading text-black">
-              R$ {psi?.valorConsulta?.toFixed(2)}
-            </div>
+            <div className="text-4xl font-black font-heading text-black">R$ {psi?.valorConsulta?.toFixed(2)}</div>
             <span className="text-xs font-bold uppercase text-black">por sessão · 50 minutos</span>
           </div>
-
         </div>
       </section>
 
@@ -261,9 +238,7 @@ export default function PsicologoPublico() {
 
           {/* Modalidade */}
           <BrutalistCard padding="p-6">
-            <p className="font-heading font-black text-[10px] uppercase tracking-widest text-black opacity-60 mb-4">
-              Modo de atendimento
-            </p>
+            <p className="font-heading font-black text-[10px] uppercase tracking-widest text-black opacity-60 mb-4">Modo de atendimento</p>
             <div className="flex gap-3">
               {(['online','presencial'] as const).map(m => (
                 <button key={m} type="button" onClick={() => setModalidade(m)}
@@ -275,12 +250,10 @@ export default function PsicologoPublico() {
             </div>
           </BrutalistCard>
 
-          {/* Calendário quadrado */}
+          {/* Calendário */}
           <BrutalistCard padding="p-6">
             <div className="flex justify-between items-center mb-4">
-              <p className="font-heading font-black text-[10px] uppercase tracking-widest text-black opacity-60">
-                Escolha o dia
-              </p>
+              <p className="font-heading font-black text-[10px] uppercase tracking-widest text-black opacity-60">Escolha o dia</p>
               <div className="flex items-center gap-3">
                 <button type="button" onClick={() => setMesAtual(new Date(mesAtual.getFullYear(), mesAtual.getMonth() - 1, 1))}
                   disabled={!podePrevMes}
@@ -296,34 +269,24 @@ export default function PsicologoPublico() {
                 </button>
               </div>
             </div>
-
-            {/* Header dias da semana */}
             <div className="grid grid-cols-7 mb-2">
               {DIAS_SEMANA.map(d => (
-                <div key={d} className="text-center text-[10px] font-black font-heading uppercase text-black opacity-40 py-1">
-                  {d}
-                </div>
+                <div key={d} className="text-center text-[10px] font-black font-heading uppercase text-black opacity-40 py-1">{d}</div>
               ))}
             </div>
-
-            {/* Grid de dias */}
             <div className="grid grid-cols-7 gap-1">
               {diasCalendario.map((d, i) => {
-                if (!d) return <div key={`empty-${i}`} />
+                if (!d) return <div key={`e-${i}`} />
                 const passado = d < hoje
-                const fimDeSemana = d.getDay() === 0 || d.getDay() === 6
-                const desabilitado = passado || fimDeSemana
+                const fimSemana = d.getDay() === 0 || d.getDay() === 6
+                const disabled = passado || fimSemana
                 const selected = dia?.toDateString() === d.toDateString()
                 return (
-                  <button key={d.toISOString()} type="button"
-                    onClick={() => !desabilitado && setDia(d)}
-                    disabled={desabilitado}
+                  <button key={d.toISOString()} type="button" onClick={() => !disabled && setDia(d)} disabled={disabled}
                     className={`aspect-square flex items-center justify-center text-sm font-bold font-heading rounded-lg border-2 transition-all
-                      ${desabilitado
-                        ? 'border-transparent text-black opacity-20 cursor-not-allowed'
-                        : selected
-                          ? 'bg-black text-white border-black'
-                          : 'border-transparent text-black hover:border-black hover:bg-black hover:text-white'}`}>
+                      ${disabled ? 'border-transparent text-black opacity-20 cursor-not-allowed'
+                        : selected ? 'bg-black text-white border-black'
+                        : 'border-transparent text-black hover:border-black hover:bg-black hover:text-white'}`}>
                     {d.getDate()}
                   </button>
                 )
@@ -331,57 +294,61 @@ export default function PsicologoPublico() {
             </div>
           </BrutalistCard>
 
-          {/* Horários */}
+          {/* Horários — aparece com scroll suave */}
           {dia && (
             <BrutalistCard padding="p-6">
+              <div ref={refHorarios} />
               <p className="font-heading font-black text-[10px] uppercase tracking-widest text-black opacity-60 mb-4">Horário</p>
               <div className="flex flex-wrap gap-2">
                 {HORARIOS.map(h => {
                   const ocupado = horariosOcupados.includes(h)
                   const selected = horario === h
                   return (
-                    <button key={h} type="button" onClick={() => !ocupado && setHorario(h)} disabled={ocupado}
+                    <button key={h} type="button" onClick={() => !ocupado && selecionarHorario(h)} disabled={ocupado}
                       className={`py-2 px-5 rounded-full border-2 font-heading font-bold text-sm transition-all
-                        ${ocupado
-                          ? 'border-gray-200 text-gray-300 bg-gray-50 cursor-not-allowed line-through'
-                          : selected
-                            ? 'bg-black text-white border-black'
-                            : 'border-black text-black hover:bg-black hover:text-white'}`}>
+                        ${ocupado ? 'border-gray-200 text-gray-300 bg-gray-50 cursor-not-allowed line-through'
+                          : selected ? 'bg-black text-white border-black'
+                          : 'border-black text-black hover:bg-black hover:text-white'}`}>
                       {h}
                     </button>
                   )
                 })}
               </div>
               {horariosOcupados.length > 0 && (
-                <p className="text-[10px] text-black opacity-40 font-bold uppercase mt-3">
-                  Horários riscados já estão reservados
-                </p>
+                <p className="text-[10px] text-black opacity-40 font-bold uppercase mt-3">Horários riscados já estão reservados</p>
               )}
             </BrutalistCard>
           )}
 
-          {/* Dados pessoais */}
-          <BrutalistCard padding="p-6" className="flex flex-col gap-4">
-            <p className="font-heading font-black text-[10px] uppercase tracking-widest text-black opacity-60">Seus dados</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="font-heading font-bold text-xs uppercase text-black">Nome completo</label>
-                <input required value={nome} onChange={e => setNome(e.target.value)} placeholder="Seu nome"
-                  className="w-full bg-white border border-black p-3 font-sans text-black focus:outline-none focus:ring-2 focus:ring-black"/>
+          {/* Dados pessoais — aparece com scroll suave */}
+          <div ref={refDados}>
+            <BrutalistCard padding="p-6" className="flex flex-col gap-4">
+              <p className="font-heading font-black text-[10px] uppercase tracking-widest text-black opacity-60">Seus dados</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-heading font-bold text-xs uppercase text-black">Nome completo</label>
+                  <input required value={nome} onChange={e => setNome(e.target.value)} placeholder="Seu nome"
+                    className="w-full bg-white border border-black p-3 font-sans text-black focus:outline-none focus:ring-2 focus:ring-black"/>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-heading font-bold text-xs uppercase text-black">E-mail</label>
+                  <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com"
+                    className="w-full bg-white border border-black p-3 font-sans text-black focus:outline-none focus:ring-2 focus:ring-black"/>
+                </div>
+                <div className="flex flex-col gap-1.5 md:col-span-2">
+                  <label className="font-heading font-bold text-xs uppercase text-black">Telefone / WhatsApp</label>
+                  <input type="tel" required value={telefone} onChange={e => setTelefone(e.target.value)} placeholder="(00) 00000-0000"
+                    className="w-full bg-white border border-black p-3 font-sans text-black focus:outline-none focus:ring-2 focus:ring-black"/>
+                </div>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="font-heading font-bold text-xs uppercase text-black">E-mail</label>
-                <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com"
-                  className="w-full bg-white border border-black p-3 font-sans text-black focus:outline-none focus:ring-2 focus:ring-black"/>
+                <label className="font-heading font-bold text-xs uppercase text-black">Motivo (opcional)</label>
+                <textarea rows={3} value={obs} onChange={e => setObs(e.target.value)}
+                  placeholder="Descreva brevemente o que te trouxe aqui..."
+                  className="w-full bg-white border border-black p-3 font-sans text-black resize-none focus:outline-none focus:ring-2 focus:ring-black"/>
               </div>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="font-heading font-bold text-xs uppercase text-black">Motivo (opcional)</label>
-              <textarea rows={3} value={obs} onChange={e => setObs(e.target.value)}
-                placeholder="Descreva brevemente o que te trouxe aqui..."
-                className="w-full bg-white border border-black p-3 font-sans text-black resize-none focus:outline-none focus:ring-2 focus:ring-black"/>
-            </div>
-          </BrutalistCard>
+            </BrutalistCard>
+          </div>
 
           {erro && (
             <div className="bg-red-100 border-2 border-red-600 text-red-700 p-4 font-bold text-sm">{erro}</div>
