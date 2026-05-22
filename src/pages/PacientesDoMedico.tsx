@@ -29,14 +29,16 @@ type Aba = 'proximas' | 'historico' | 'perfil' | 'pagamentos'
 
 export default function PacientesDoMedico() {
   const { slug } = useParams()
-  const { user, logout } = useAuth()
+  const { user, login, logout } = useAuth()
   const [psi, setPsi] = useState<Psicologo | null>(null)
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([])
   const [loading, setLoading] = useState(true)
   const [email, setEmail] = useState(user?.email || '')
+  const [senha, setSenha] = useState('')
   const [buscando, setBuscando] = useState(false)
   const [buscou, setBuscou] = useState(!!user)
   const [erro, setErro] = useState('')
+  const [esqueceuSenha, setEsqueceuSenha] = useState(false)
   const [aba, setAba] = useState<Aba>('proximas')
 
   useEffect(() => {
@@ -57,7 +59,18 @@ export default function PacientesDoMedico() {
       .finally(() => setLoading(false))
   }
 
-  const buscar = (e: React.FormEvent) => {
+  const entrar = async (e: React.FormEvent) => {
+    e.preventDefault(); setErro(''); setBuscando(true)
+    try {
+      const { data } = await api.post('/api/auth/login', { email, senha })
+      login(data)
+      carregarAgendamentos(data.email)
+    } catch {
+      setErro('E-mail ou senha incorretos.')
+    } finally { setBuscando(false) }
+  }
+
+  const buscarSemSenha = (e: React.FormEvent) => {
     e.preventDefault(); setErro(''); setBuscando(true)
     carregarAgendamentos(email)
     setBuscando(false)
@@ -91,37 +104,95 @@ export default function PacientesDoMedico() {
 
       <div className="max-w-2xl mx-auto px-6 py-8 flex flex-col gap-6">
 
-        {/* Login por email se não autenticado */}
+        {/* Login */}
         {!buscou && (
           <>
             <div className="text-center">
               <h1 className="text-4xl font-black font-heading uppercase text-black">Meus Agendamentos</h1>
               {psi && <p className="text-black font-medium mt-1 opacity-60">com {psi.nome}</p>}
             </div>
-            <BrutalistCard className="flex flex-col gap-5">
-              <div className="flex flex-col gap-1">
-                <h2 className="text-xl font-black font-heading uppercase text-black">Acesse seus agendamentos</h2>
-                <p className="text-sm font-medium text-black opacity-60">Digite o e-mail que usou ao agendar.</p>
-              </div>
-              <form onSubmit={buscar} className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="font-heading font-bold text-xs uppercase text-black">E-mail</label>
-                  <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                    placeholder="seu@email.com"
-                    className="w-full bg-white border border-black p-3 font-sans text-black focus:outline-none focus:ring-2 focus:ring-black"/>
+
+            {/* Formulário com senha */}
+            {!esqueceuSenha && (
+              <BrutalistCard className="flex flex-col gap-5">
+                <div className="flex flex-col gap-1">
+                  <h2 className="text-xl font-black font-heading uppercase text-black">Entrar na sua conta</h2>
+                  <p className="text-sm font-medium text-black opacity-60">Use o e-mail e senha cadastrados ao agendar.</p>
                 </div>
-                {erro && <div className="bg-red-100 border-2 border-red-600 text-red-700 p-3 text-sm font-bold">{erro}</div>}
-                <BrutalistButton type="submit" disabled={buscando} className="w-full">
-                  {buscando ? 'Buscando...' : 'Ver meus agendamentos'}
-                </BrutalistButton>
-              </form>
-              <div className="border-t-2 border-black pt-4 text-center flex flex-col gap-2">
-                <p className="text-sm font-medium text-black opacity-60">Ainda não agendou?</p>
-                <Link to={`/p/${slug}`}>
-                  <BrutalistButton variant="secondary" className="w-full">Agendar agora →</BrutalistButton>
-                </Link>
-              </div>
-            </BrutalistCard>
+                <form onSubmit={entrar} className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-heading font-bold text-xs uppercase text-black">E-mail</label>
+                    <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
+                      placeholder="seu@email.com"
+                      className="w-full bg-white border border-black p-3 font-sans text-black focus:outline-none focus:ring-2 focus:ring-black"/>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex justify-between items-center">
+                      <label className="font-heading font-bold text-xs uppercase text-black">Senha</label>
+                      <button type="button" onClick={() => { setEsqueceuSenha(true); setErro('') }}
+                        className="text-xs font-bold uppercase underline underline-offset-4 text-black opacity-50 hover:opacity-100">
+                        Esqueci minha senha
+                      </button>
+                    </div>
+                    <input type="password" required value={senha} onChange={e => setSenha(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full bg-white border border-black p-3 font-sans text-black focus:outline-none focus:ring-2 focus:ring-black"/>
+                  </div>
+                  {erro && <div className="bg-red-100 border-2 border-red-600 text-red-700 p-3 text-sm font-bold">{erro}</div>}
+                  <BrutalistButton type="submit" disabled={buscando} className="w-full">
+                    {buscando ? 'Entrando...' : 'Entrar'}
+                  </BrutalistButton>
+                </form>
+                <div className="border-t-2 border-black pt-4 flex flex-col gap-3">
+                  <p className="text-xs font-bold uppercase text-black opacity-40 text-center">
+                    Agendou mas ainda não tem senha?
+                  </p>
+                  <form onSubmit={buscarSemSenha} className="flex gap-2">
+                    <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
+                      placeholder="Seu e-mail"
+                      className="flex-1 bg-white border border-black p-2 text-sm font-sans text-black focus:outline-none focus:ring-2 focus:ring-black"/>
+                    <BrutalistButton type="submit" variant="secondary" className="text-xs py-2 px-4 shrink-0">
+                      Buscar
+                    </BrutalistButton>
+                  </form>
+                </div>
+                <div className="text-center">
+                  <Link to={`/p/${slug}`}>
+                    <span className="text-xs font-bold uppercase underline underline-offset-4 text-black opacity-40 hover:opacity-100">
+                      Fazer novo agendamento →
+                    </span>
+                  </Link>
+                </div>
+              </BrutalistCard>
+            )}
+
+            {/* Esqueci minha senha */}
+            {esqueceuSenha && (
+              <BrutalistCard className="flex flex-col gap-5">
+                <div className="flex flex-col gap-2">
+                  <h2 className="text-xl font-black font-heading uppercase text-black">Esqueci minha senha</h2>
+                  <p className="text-sm font-medium text-black opacity-60">
+                    Digite seu e-mail para buscar seus agendamentos sem senha. Você poderá criar uma nova senha depois.
+                  </p>
+                </div>
+                <form onSubmit={buscarSemSenha} className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-heading font-bold text-xs uppercase text-black">E-mail</label>
+                    <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
+                      placeholder="seu@email.com"
+                      className="w-full bg-white border border-black p-3 font-sans text-black focus:outline-none focus:ring-2 focus:ring-black"/>
+                  </div>
+                  {erro && <div className="bg-red-100 border-2 border-red-600 text-red-700 p-3 text-sm font-bold">{erro}</div>}
+                  <BrutalistButton type="submit" disabled={buscando} className="w-full">
+                    {buscando ? 'Buscando...' : 'Buscar meus agendamentos'}
+                  </BrutalistButton>
+                </form>
+                <button onClick={() => setEsqueceuSenha(false)}
+                  className="text-xs font-bold uppercase underline underline-offset-4 text-black opacity-40 hover:opacity-100 text-center">
+                  ← Voltar ao login
+                </button>
+              </BrutalistCard>
+            )}
           </>
         )}
 
