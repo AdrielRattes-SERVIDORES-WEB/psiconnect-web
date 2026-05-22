@@ -30,7 +30,6 @@ type Aba = 'proximas' | 'historico' | 'perfil' | 'pagamentos'
 export default function PacientesDoMedico() {
   const { slug } = useParams()
   const { user, logout } = useAuth()
-  useNavigate()
   const [psi, setPsi] = useState<Psicologo | null>(null)
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([])
   const [loading, setLoading] = useState(true)
