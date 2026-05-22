@@ -6,6 +6,8 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import Cadastro from './pages/Cadastro'
 import Dashboard from './pages/Dashboard'
+import MinhaConta from './pages/MinhaConta'
+import PsicologoPublico from './pages/PsicologoPublico'
 import './index.css'
 
 export default function App() {
@@ -18,6 +20,8 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/minha-conta" element={<MinhaConta />} />
+          <Route path="/p/:slug" element={<PsicologoPublico />} />
         </Routes>
         <Footer />
       </BrowserRouter>
