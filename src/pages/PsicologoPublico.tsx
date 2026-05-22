@@ -43,6 +43,7 @@ export default function PsicologoPublico() {
   const [psi, setPsi] = useState<Psicologo | null>(null)
   const [loading, setLoading] = useState(true)
 
+  const refCalendario = useRef<HTMLDivElement>(null)
   const refHorarios = useRef<HTMLDivElement>(null)
   const refDados = useRef<HTMLDivElement>(null)
 
@@ -87,7 +88,11 @@ export default function PsicologoPublico() {
     scrollSuave(refDados)
   }
 
-  const scrollToForm = () => document.getElementById('agendamento')?.scrollIntoView({ behavior: 'smooth' })
+  const scrollToForm = () => {
+    if (!refCalendario.current) return
+    const y = refCalendario.current.getBoundingClientRect().top + window.scrollY - (window.innerHeight / 2 - refCalendario.current.offsetHeight / 2)
+    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' })
+  }
 
   const handleAgendar = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -256,7 +261,8 @@ export default function PsicologoPublico() {
           </BrutalistCard>
 
           {/* Calendário */}
-          <BrutalistCard padding="p-4 md:p-5">
+          <div ref={refCalendario}>
+          <BrutalistCard padding="p-4">
             <div className="flex justify-between items-center mb-3">
               <p className="font-heading font-black text-[10px] uppercase tracking-widest text-black">Escolha o dia</p>
               <div className="flex items-center gap-3">
@@ -288,7 +294,7 @@ export default function PsicologoPublico() {
                 const selected = dia?.toDateString() === d.toDateString()
                 return (
                   <button key={d.toISOString()} type="button" onClick={() => !disabled && setDia(d)} disabled={disabled}
-                    className={`aspect-square flex items-center justify-center text-xs md:text-sm font-bold font-heading rounded-md md:rounded-lg border-2 transition-all
+                    className={`h-8 md:h-7 flex items-center justify-center text-xs font-bold font-heading rounded-md border-2 transition-all
                       ${disabled ? 'border-transparent text-black opacity-20 cursor-not-allowed'
                         : selected ? 'bg-black text-white border-black'
                         : 'border-transparent text-black hover:border-black hover:bg-black hover:text-white'}`}>
@@ -298,6 +304,8 @@ export default function PsicologoPublico() {
               })}
             </div>
           </BrutalistCard>
+
+          </div>
 
           {/* Horários — aparece com scroll suave */}
           {dia && (
