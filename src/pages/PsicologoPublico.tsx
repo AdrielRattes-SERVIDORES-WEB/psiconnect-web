@@ -188,7 +188,7 @@ export default function PsicologoPublico() {
       <section className="bg-white border-b-2 border-black">
         <div className="max-w-2xl mx-auto px-6 py-14 flex flex-col items-center text-center gap-5">
 
-          <div className="w-48 h-48 rounded-full border-4 border-black overflow-hidden bg-black flex items-center justify-center text-white text-7xl font-black font-heading shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+          <div className="w-48 h-48 md:w-72 md:h-72 rounded-full border-4 border-black overflow-hidden bg-black flex items-center justify-center text-white text-7xl font-black font-heading shadow-[8px_8px_0px_rgba(0,0,0,1)]">
             {psi?.fotoPerfil
               ? <img src={psi.fotoPerfil} className="w-full h-full object-cover" alt={psi?.nome}/>
               : <span>{psi?.nome[0]}</span>}
@@ -236,14 +236,14 @@ export default function PsicologoPublico() {
       <section id="agendamento" className="max-w-2xl mx-auto px-6 py-14">
         <div className="text-center mb-8">
           <h2 className="text-4xl font-black font-heading uppercase tracking-tighter text-black">Agendar Consulta</h2>
-          <p className="text-black font-medium mt-2">Escolha o melhor horário para você</p>
+          <p className="text-black font-medium mt-2 opacity-60">Escolha o melhor horário para você</p>
         </div>
 
         <form onSubmit={handleAgendar} className="flex flex-col gap-5">
 
           {/* Modalidade */}
           <BrutalistCard padding="p-6">
-            <p className="font-heading font-black text-[10px] uppercase tracking-widest text-black opacity-60 mb-4">Modo de atendimento</p>
+            <p className="font-heading font-black text-[10px] uppercase tracking-widest text-black mb-4">Modo de atendimento</p>
             <div className="flex gap-3">
               {(['online','presencial'] as const).map(m => (
                 <button key={m} type="button" onClick={() => setModalidade(m)}
@@ -256,9 +256,9 @@ export default function PsicologoPublico() {
           </BrutalistCard>
 
           {/* Calendário */}
-          <BrutalistCard padding="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <p className="font-heading font-black text-[10px] uppercase tracking-widest text-black opacity-60">Escolha o dia</p>
+          <BrutalistCard padding="p-4 md:p-5">
+            <div className="flex justify-between items-center mb-3">
+              <p className="font-heading font-black text-[10px] uppercase tracking-widest text-black">Escolha o dia</p>
               <div className="flex items-center gap-3">
                 <button type="button" onClick={() => setMesAtual(new Date(mesAtual.getFullYear(), mesAtual.getMonth() - 1, 1))}
                   disabled={!podePrevMes}
@@ -274,12 +274,12 @@ export default function PsicologoPublico() {
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-7 mb-2">
+            <div className="grid grid-cols-7 mb-1">
               {DIAS_SEMANA.map(d => (
-                <div key={d} className="text-center text-[10px] font-black font-heading uppercase text-black opacity-40 py-1">{d}</div>
+                <div key={d} className="text-center text-[9px] md:text-[10px] font-black font-heading uppercase text-black py-1">{d}</div>
               ))}
             </div>
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-0.5 md:gap-1">
               {diasCalendario.map((d, i) => {
                 if (!d) return <div key={`e-${i}`} />
                 const passado = d < hoje
@@ -288,7 +288,7 @@ export default function PsicologoPublico() {
                 const selected = dia?.toDateString() === d.toDateString()
                 return (
                   <button key={d.toISOString()} type="button" onClick={() => !disabled && setDia(d)} disabled={disabled}
-                    className={`aspect-square flex items-center justify-center text-sm font-bold font-heading rounded-lg border-2 transition-all
+                    className={`aspect-square flex items-center justify-center text-xs md:text-sm font-bold font-heading rounded-md md:rounded-lg border-2 transition-all
                       ${disabled ? 'border-transparent text-black opacity-20 cursor-not-allowed'
                         : selected ? 'bg-black text-white border-black'
                         : 'border-transparent text-black hover:border-black hover:bg-black hover:text-white'}`}>
