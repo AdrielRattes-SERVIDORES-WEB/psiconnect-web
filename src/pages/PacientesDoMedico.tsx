@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import BrutalistCard from '../components/BrutalistCard'
 import BrutalistButton from '../components/BrutalistButton'
 import { useAuth } from '../contexts/AuthContext'
@@ -30,7 +30,7 @@ type Aba = 'proximas' | 'historico' | 'perfil' | 'pagamentos'
 export default function PacientesDoMedico() {
   const { slug } = useParams()
   const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  useNavigate()
   const [psi, setPsi] = useState<Psicologo | null>(null)
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([])
   const [loading, setLoading] = useState(true)
