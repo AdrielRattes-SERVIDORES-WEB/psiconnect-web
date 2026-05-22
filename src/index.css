@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Work+Sans:wght@700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Work Sans", sans-serif;
+  --color-brand-black: #000000;
+  --color-brand-white: #ffffff;
+  --color-brand-gray: #f8f9fa;
+  --radius-brutalist: 1.5rem;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-gray text-brand-black font-sans antialiased;
+    margin: 0;
+  }
+  h1, h2, h3, h4 {
+    @apply font-heading tracking-tighter;
+  }
+  #root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.brutalist-border { @apply border-2 border-black; }
+.brutalist-shadow { box-shadow: 4px 4px 0px 0px rgba(0,0,0,1); }
