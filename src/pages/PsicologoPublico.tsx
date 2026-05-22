@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import BrutalistCard from '../components/BrutalistCard'
 import BrutalistButton from '../components/BrutalistButton'
+import FooterPublico from '../components/FooterPublico'
 import { useAuth } from '../contexts/AuthContext'
 import api from '../lib/api'
 import { User, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -28,7 +29,11 @@ function diasDoMes(ano: number, mes: number) {
 }
 
 function scrollSuave(ref: React.RefObject<HTMLElement | null>) {
-  setTimeout(() => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+  setTimeout(() => {
+    if (!ref.current) return
+    const y = ref.current.getBoundingClientRect().top + window.scrollY - 100
+    window.scrollTo({ top: y, behavior: 'smooth' })
+  }, 200)
 }
 
 export default function PsicologoPublico() {
@@ -195,7 +200,7 @@ export default function PsicologoPublico() {
 
           {psi?.especialidades && psi.especialidades.length > 0 && (
             <div className="flex flex-col gap-2 items-center">
-              <span className="text-xs font-black font-heading uppercase tracking-widest text-black opacity-60">Tratamento de</span>
+              <span className="text-xs font-black font-heading uppercase tracking-widest text-black">Tratamento de</span>
               <div className="flex flex-wrap gap-2 justify-center">
                 {psi.especialidades.map(e => (
                   <span key={e} className="bg-black text-white text-xs font-bold font-heading uppercase px-4 py-1.5 rounded-full">{e}</span>
@@ -206,7 +211,7 @@ export default function PsicologoPublico() {
 
           {psi?.abordagem && (
             <div className="flex flex-col gap-1 items-center">
-              <span className="text-xs font-black font-heading uppercase tracking-widest text-black opacity-60">Linha de trabalho</span>
+              <span className="text-xs font-black font-heading uppercase tracking-widest text-black">Linha de trabalho</span>
               <p className="text-sm font-bold text-black">{psi.abordagem}</p>
             </div>
           )}
@@ -366,6 +371,8 @@ export default function PsicologoPublico() {
           </p>
         </form>
       </section>
+
+      <FooterPublico />
     </div>
   )
 }

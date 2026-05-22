@@ -117,7 +117,7 @@ export default function PacientesDoMedico() {
               <BrutalistCard className="flex flex-col gap-5">
                 <div className="flex flex-col gap-1">
                   <h2 className="text-xl font-black font-heading uppercase text-black">Entrar na sua conta</h2>
-                  <p className="text-sm font-medium text-black opacity-60">Use o e-mail e senha cadastrados ao agendar.</p>
+                  <p className="text-sm font-medium text-black">Use o e-mail e senha cadastrados ao agendar.</p>
                 </div>
                 <form onSubmit={entrar} className="flex flex-col gap-4">
                   <div className="flex flex-col gap-1.5">
@@ -143,20 +143,7 @@ export default function PacientesDoMedico() {
                     {buscando ? 'Entrando...' : 'Entrar'}
                   </BrutalistButton>
                 </form>
-                <div className="border-t-2 border-black pt-4 flex flex-col gap-3">
-                  <p className="text-xs font-bold uppercase text-black opacity-40 text-center">
-                    Agendou mas ainda não tem senha?
-                  </p>
-                  <form onSubmit={buscarSemSenha} className="flex gap-2">
-                    <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                      placeholder="Seu e-mail"
-                      className="flex-1 bg-white border border-black p-2 text-sm font-sans text-black focus:outline-none focus:ring-2 focus:ring-black"/>
-                    <BrutalistButton type="submit" variant="secondary" className="text-xs py-2 px-4 shrink-0">
-                      Buscar
-                    </BrutalistButton>
-                  </form>
-                </div>
-                <div className="text-center">
+                <div className="border-t-2 border-black pt-4 text-center">
                   <Link to={`/p/${slug}`}>
                     <span className="text-xs font-bold uppercase underline underline-offset-4 text-black opacity-40 hover:opacity-100">
                       Fazer novo agendamento →
