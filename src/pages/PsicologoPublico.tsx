@@ -53,6 +53,7 @@ export default function PsicologoPublico() {
   const [horario, setHorario] = useState('')
   const [horariosOcupados, setHorariosOcupados] = useState<string[]>([])
   const [modalidade, setModalidade] = useState<'online'|'presencial'>('online')
+  const [plano, setPlano] = useState<string | null>(null)
 
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
@@ -89,13 +90,15 @@ export default function PsicologoPublico() {
   }
 
   const scrollToForm = () => {
-    if (!refCalendario.current) return
-    const y = refCalendario.current.getBoundingClientRect().top + window.scrollY - (window.innerHeight / 2 - refCalendario.current.offsetHeight / 2)
+    const target = document.getElementById('planos')
+    if (!target) return
+    const y = target.getBoundingClientRect().top + window.scrollY - 80
     window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' })
   }
 
   const handleAgendar = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!plano) { setErro('Selecione um plano de atendimento.'); return }
     if (!dia || !horario) { setErro('Selecione data e horário.'); return }
     setErro(''); setEnviando(true)
     try {
@@ -105,7 +108,7 @@ export default function PsicologoPublico() {
       await api.post('/api/agendamentos/publico', {
         psicologoId: psi!.id, pacienteNome: nome, pacienteEmail: email,
         pacienteTelefone: telefone, dataHora: dataHora.toISOString(),
-        modalidade, observacoes: obs
+        modalidade, observacoes: obs, plano
       })
       setEtapa('senha')
     } catch { setErro('Erro ao agendar. Tente novamente.') }
@@ -229,47 +232,54 @@ export default function PsicologoPublico() {
           )}
 
           {/* Planos */}
-          <div className="w-full border-t-2 border-black pt-6 flex flex-col gap-4">
+          <div id="planos" className="w-full border-t-2 border-black pt-6 flex flex-col gap-4">
             <h2 className="text-xl font-black font-heading uppercase tracking-tighter text-black text-center">Planos de atendimento</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
-
-              {/* Diário */}
-              <div className="bg-black text-white brutalist-border rounded-2xl p-5 flex flex-col gap-2 items-center text-center relative">
-                <span className="text-[9px] font-black font-heading uppercase tracking-widest opacity-60">Sessão avulsa</span>
-                <span className="text-4xl font-black font-heading">R$ 180</span>
-                <span className="text-xs font-bold opacity-60">por sessão · 50 min</span>
-                <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-white text-black text-[9px] font-black uppercase px-2 py-0.5 rounded-full border border-black">
-                  Padrão
-                </div>
-              </div>
-
-              {/* Mensal */}
-              <div className="bg-white brutalist-border rounded-2xl p-5 flex flex-col gap-2 items-center text-center">
-                <span className="text-[9px] font-black font-heading uppercase tracking-widest text-black opacity-60">Plano mensal</span>
-                <span className="text-4xl font-black font-heading text-black">R$ 640</span>
-                <span className="text-xs font-bold text-black opacity-60">4 sessões · economia R$ 80</span>
-                <span className="text-[10px] font-black uppercase text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
-                  -11% de desconto
-                </span>
-              </div>
-
-              {/* Bimestral */}
-              <div className="bg-white brutalist-border rounded-2xl p-5 flex flex-col gap-2 items-center text-center">
-                <span className="text-[9px] font-black font-heading uppercase tracking-widest text-black opacity-60">Plano bimestral</span>
-                <span className="text-4xl font-black font-heading text-black">R$ 1.200</span>
-                <span className="text-xs font-bold text-black opacity-60">8 sessões · economia R$ 240</span>
-                <span className="text-[10px] font-black uppercase text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
-                  -17% de desconto
-                </span>
-              </div>
-
+              {[
+                { id: 'diario',    label: 'Sessão avulsa', preco: 'R$ 180',   detalhe: 'por sessão · 50 min',      badge: null },
+                { id: 'mensal',    label: 'Plano mensal',  preco: 'R$ 640',   detalhe: '4 sessões · economia R$ 80', badge: '-11%' },
+                { id: 'bimestral', label: 'Plano bimestral', preco: 'R$ 1.200', detalhe: '8 sessões · economia R$ 240', badge: '-17%' },
+              ].map(p => {
+                const selected = plano === p.id
+                return (
+                  <button key={p.id} type="button"
+                    onClick={() => { setPlano(p.id); scrollSuave(refCalendario) }}
+                    className={`relative rounded-2xl p-5 flex flex-col gap-2 items-center text-center border-2 transition-all cursor-pointer
+                      ${selected ? 'bg-black text-white border-black' : 'bg-white text-black border-black hover:bg-black hover:text-white group'}`}>
+                    {selected && (
+                      <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-white text-black text-[9px] font-black uppercase px-2 py-0.5 rounded-full border border-black">
+                        Selecionado ✓
+                      </div>
+                    )}
+                    <span className={`text-[9px] font-black font-heading uppercase tracking-widest ${selected ? 'opacity-60' : 'opacity-60'}`}>
+                      {p.label}
+                    </span>
+                    <span className="text-4xl font-black font-heading">{p.preco}</span>
+                    <span className={`text-xs font-bold ${selected ? 'opacity-60' : 'opacity-60'}`}>{p.detalhe}</span>
+                    {p.badge && (
+                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${selected ? 'bg-white text-black' : 'text-green-700 bg-green-100'}`}>
+                        {p.badge} de desconto
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
             </div>
-            <p className="text-[10px] font-bold uppercase text-black opacity-40 text-center">
-              Pagamento combinado diretamente com o profissional
-            </p>
+            {!plano && (
+              <p className="text-[10px] font-bold uppercase text-black opacity-40 text-center animate-pulse">
+                ↑ Selecione um plano para continuar
+              </p>
+            )}
+            {plano && (
+              <p className="text-[10px] font-bold uppercase text-black opacity-40 text-center">
+                Pagamento combinado diretamente com o profissional
+              </p>
+            )}
           </div>
 
-          <BrutalistButton onClick={scrollToForm} className="text-lg px-10">Agendar Consulta</BrutalistButton>
+          {plano && (
+            <BrutalistButton onClick={scrollToForm} className="text-lg px-10">Agendar Consulta</BrutalistButton>
+          )}
         </div>
       </section>
 
