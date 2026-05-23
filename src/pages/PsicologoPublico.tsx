@@ -233,7 +233,7 @@ export default function PsicologoPublico() {
 
           {/* Planos */}
           <div id="planos" className="w-full border-t-2 border-black pt-6 flex flex-col gap-4">
-            <h2 className="text-xl font-black font-heading uppercase tracking-tighter text-black text-center">Planos de atendimento</h2>
+            <h2 className="text-xl font-black font-heading uppercase tracking-tighter text-black text-center">Planos de Atendimento <span className="font-normal normal-case opacity-50">(Selecione o Seu)</span></h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
               {[
                 { id: 'diario',    label: 'Sessão avulsa',   preco: 'R$ 180',   detalhe: 'por sessão · 50 min',         badge: null   },
