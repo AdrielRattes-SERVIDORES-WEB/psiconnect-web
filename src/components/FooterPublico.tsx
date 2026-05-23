@@ -42,7 +42,7 @@ export default function FooterPublico() {
 
         {/* Copyright — último item */}
         <div className="border-t border-gray-200 pt-3">
-          <p className="text-[10px] font-bold uppercase text-black opacity-40 text-center">
+          <p className="text-[10px] font-bold uppercase text-black text-center">
             Psiconnect © {new Date().getFullYear()} Psiconnect. Todos os direitos reservados.
           </p>
         </div>
