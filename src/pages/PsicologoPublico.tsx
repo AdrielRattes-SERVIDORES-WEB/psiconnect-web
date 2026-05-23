@@ -236,37 +236,32 @@ export default function PsicologoPublico() {
             <h2 className="text-xl font-black font-heading uppercase tracking-tighter text-black text-center">Planos de atendimento</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
               {[
-                { id: 'diario',    label: 'Sessão avulsa',   preco: 'R$ 180',   detalhe: 'por sessão · 50 min',         badge: null,  dark: true },
-                { id: 'mensal',    label: 'Plano mensal',    preco: 'R$ 640',   detalhe: '4 sessões · economia R$ 80',  badge: '-11%', dark: false },
-                { id: 'bimestral', label: 'Plano bimestral', preco: 'R$ 1.200', detalhe: '8 sessões · economia R$ 240', badge: '-17%', dark: false },
+                { id: 'diario',    label: 'Sessão avulsa',   preco: 'R$ 180',   detalhe: 'por sessão · 50 min',         badge: null   },
+                { id: 'mensal',    label: 'Plano mensal',    preco: 'R$ 640',   detalhe: '4 sessões · economia R$ 80',  badge: '-11%' },
+                { id: 'bimestral', label: 'Plano bimestral', preco: 'R$ 1.200', detalhe: '8 sessões · economia R$ 240', badge: '-17%' },
               ].map(p => {
                 const selected = plano === p.id
-                const isDark = selected || p.dark
                 return (
                   <button key={p.id} type="button"
                     onClick={() => { setPlano(p.id); scrollSuave(refCalendario) }}
                     className={`relative rounded-2xl p-5 flex flex-col gap-2 items-center text-center border-2 transition-all cursor-pointer
-                      ${isDark ? 'bg-black text-white border-black' : 'bg-white text-black border-black hover:bg-black hover:text-white'}`}>
+                      ${selected ? 'bg-black text-white border-black' : 'bg-white text-black border-black hover:bg-gray-50'}`}>
                     {selected && (
                       <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-white text-black text-[9px] font-black uppercase px-2 py-0.5 rounded-full border border-black">
                         Selecionado ✓
                       </div>
                     )}
-                    <span className={`text-[9px] font-black font-heading uppercase tracking-widest ${isDark ? 'text-white' : 'text-black'}`}>
+                    <span className="text-[9px] font-black font-heading uppercase tracking-widest">
                       {p.label}
                     </span>
-                    <span className={`text-4xl font-black font-heading ${isDark ? 'text-white' : 'text-black'}`}>
-                      {p.preco}
-                    </span>
-                    <span className={`text-xs font-bold ${isDark ? 'text-white opacity-70' : 'text-black'}`}>
-                      {p.detalhe}
-                    </span>
+                    <span className="text-4xl font-black font-heading">{p.preco}</span>
+                    <span className="text-xs font-bold opacity-70">{p.detalhe}</span>
                     {p.badge && (
-                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${isDark ? 'bg-white text-black' : 'text-green-700 bg-green-100'}`}>
+                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${selected ? 'bg-white text-black' : 'text-green-700 bg-green-100'}`}>
                         {p.badge} de desconto
                       </span>
                     )}
-                    <span className={`text-[9px] font-bold uppercase mt-1 ${isDark ? 'text-white opacity-50' : 'text-black opacity-50'}`}>
+                    <span className="text-[9px] font-bold uppercase mt-1 opacity-50">
                       💳 Pagamento online
                     </span>
                   </button>
