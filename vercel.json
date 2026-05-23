@@ -5,7 +5,7 @@
       "destination": "http://164.152.246.7:8080/api/:path*"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!.*\\.[a-zA-Z0-9]+$).*)",
       "destination": "/index.html"
     }
   ]
