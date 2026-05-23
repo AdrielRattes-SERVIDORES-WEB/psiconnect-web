@@ -228,12 +228,48 @@ export default function PsicologoPublico() {
             </div>
           )}
 
-          <BrutalistButton onClick={scrollToForm} className="text-lg px-10">Agendar Consulta</BrutalistButton>
+          {/* Planos */}
+          <div className="w-full border-t-2 border-black pt-6 flex flex-col gap-4">
+            <h2 className="text-xl font-black font-heading uppercase tracking-tighter text-black text-center">Planos de atendimento</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
 
-          <div className="flex flex-col items-center gap-1">
-            <div className="text-4xl font-black font-heading text-black">R$ {psi?.valorConsulta?.toFixed(2)}</div>
-            <span className="text-xs font-bold uppercase text-black">por sessão · 50 minutos</span>
+              {/* Diário */}
+              <div className="bg-black text-white brutalist-border rounded-2xl p-5 flex flex-col gap-2 items-center text-center relative">
+                <span className="text-[9px] font-black font-heading uppercase tracking-widest opacity-60">Sessão avulsa</span>
+                <span className="text-4xl font-black font-heading">R$ 180</span>
+                <span className="text-xs font-bold opacity-60">por sessão · 50 min</span>
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-white text-black text-[9px] font-black uppercase px-2 py-0.5 rounded-full border border-black">
+                  Padrão
+                </div>
+              </div>
+
+              {/* Mensal */}
+              <div className="bg-white brutalist-border rounded-2xl p-5 flex flex-col gap-2 items-center text-center">
+                <span className="text-[9px] font-black font-heading uppercase tracking-widest text-black opacity-60">Plano mensal</span>
+                <span className="text-4xl font-black font-heading text-black">R$ 640</span>
+                <span className="text-xs font-bold text-black opacity-60">4 sessões · economia R$ 80</span>
+                <span className="text-[10px] font-black uppercase text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                  -11% de desconto
+                </span>
+              </div>
+
+              {/* Bimestral */}
+              <div className="bg-white brutalist-border rounded-2xl p-5 flex flex-col gap-2 items-center text-center">
+                <span className="text-[9px] font-black font-heading uppercase tracking-widest text-black opacity-60">Plano bimestral</span>
+                <span className="text-4xl font-black font-heading text-black">R$ 1.200</span>
+                <span className="text-xs font-bold text-black opacity-60">8 sessões · economia R$ 240</span>
+                <span className="text-[10px] font-black uppercase text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                  -17% de desconto
+                </span>
+              </div>
+
+            </div>
+            <p className="text-[10px] font-bold uppercase text-black opacity-40 text-center">
+              Pagamento combinado diretamente com o profissional
+            </p>
           </div>
+
+          <BrutalistButton onClick={scrollToForm} className="text-lg px-10">Agendar Consulta</BrutalistButton>
         </div>
       </section>
 
